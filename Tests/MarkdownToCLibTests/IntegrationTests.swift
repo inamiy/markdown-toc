@@ -117,6 +117,35 @@ struct ToCGeneratorTests {
         let generator = ToCGenerator()
         #expect(generator.generate(headings: []) == nil)
     }
+
+    @Test("Excludes ToC-like headings from output")
+    func excludesToCHeadings() {
+        let headings = [
+            HeadingEntry(level: 1, text: "My Project"),
+            HeadingEntry(level: 2, text: "Table of Contents"),
+            HeadingEntry(level: 2, text: "Installation"),
+            HeadingEntry(level: 2, text: "Usage"),
+        ]
+        let generator = ToCGenerator()
+        let toc = generator.generate(headings: headings)!
+
+        #expect(!toc.contains("[Table of Contents]"))
+        #expect(toc.contains("[Installation](#installation)"))
+        #expect(toc.contains("[Usage](#usage)"))
+    }
+
+    @Test(
+        "isToCHeading matches common variants",
+        arguments: ["ToC", "toc", "TOC", "Table of Contents", "table of contents", "Contents", "contents", "目次"]
+    )
+    func tocHeadingVariants(text: String) {
+        #expect(ToCGenerator.isToCHeading(text))
+    }
+
+    @Test("isToCHeading does not match normal headings", arguments: ["Introduction", "Getting Started", "ToC Generator"])
+    func nonToCHeadings(text: String) {
+        #expect(!ToCGenerator.isToCHeading(text))
+    }
 }
 
 @Suite("ToCInserter")

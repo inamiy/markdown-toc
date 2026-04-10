@@ -29,7 +29,9 @@ public struct ToCGenerator: Sendable {
         var slugs: [(heading: HeadingEntry, slug: String)] = []
         for heading in headings {
             let s = slugger.slug(heading.text)
-            if heading.level >= config.minLevel && heading.level <= config.maxLevel {
+            if heading.level >= config.minLevel && heading.level <= config.maxLevel
+                && !Self.isToCHeading(heading.text)
+            {
                 slugs.append((heading, s))
             }
         }
@@ -45,5 +47,16 @@ public struct ToCGenerator: Sendable {
         }
 
         return lines.joined(separator: "\n")
+    }
+
+    /// Returns true if the heading text refers to a "Table of Contents" section itself,
+    /// which should be excluded from the generated ToC to avoid self-referencing.
+    static func isToCHeading(_ text: String) -> Bool {
+        let lowered = text.lowercased()
+            .trimmingCharacters(in: .whitespaces)
+        return lowered == "toc"
+            || lowered == "table of contents"
+            || lowered == "contents"
+            || lowered == "目次"
     }
 }
